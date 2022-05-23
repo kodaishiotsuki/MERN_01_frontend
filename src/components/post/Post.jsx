@@ -1,11 +1,24 @@
 import { MoreVert } from "@mui/icons-material";
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import "./Post.css";
-import { Users } from "../../dummyData";
+import { Link } from "react-router-dom";
 
 export default function Post({ post }) {
-  const [like, setLike] = useState(post.like);
+  const PUBLIC_FOLDER = process.env.REACT_APP_PUBLIC_FOLDER;
+  // console.log(post)
+  const [like, setLike] = useState(post.likes.length); //likesの長さを取得
   const [isLiked, setIsLiked] = useState(false);
+  const [users, setUsers] = useState({});
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await axios.get(`/users?userId=${post.userId}`);
+      // console.log(response.data);
+      setUsers(response.data);
+    };
+    fetchUsers();
+  }, [post.userId]);
 
   //いいねボタンクリック
   const handleLike = () => {
@@ -19,17 +32,17 @@ export default function Post({ post }) {
       <div className='postWrapper'>
         <div className='postTop'>
           <div className='postTopLeft'>
-            <img
-              src={
-                Users.filter((user) => user.id === post.id)[0].profilePicture
-              }
-              alt=''
-              className='postProfileImg'
-            />
-            <span className='postUserName'>
-              {Users.filter((user) => user.id === post.id)[0].username}
-            </span>
-            <span className='postDate'>{post.date}</span>
+            <Link to={`/profile/${users.username}`}>
+              <img
+                src={
+                  users.profilePicture || PUBLIC_FOLDER + "/person/noAvatar.png"
+                }
+                alt=''
+                className='postProfileImg'
+              />
+            </Link>
+            <span className='postUserName'>{users.username}</span>
+            <span className='postDate'>{post.createdAt}</span>
           </div>
           <div className='postTopRight'>
             <MoreVert />
@@ -37,12 +50,12 @@ export default function Post({ post }) {
         </div>
         <div className='postCenter'>
           <span className='postText'>{post.desc}</span>
-          <img src={post.photo} alt='' className='postImg' />
+          <img src={PUBLIC_FOLDER + post.img} alt='' className='postImg' />
         </div>
         <div className='postBottom'>
           <div className='postBottomLeft'>
             <img
-              src='/assets/heart.png'
+              src={PUBLIC_FOLDER + "/heart.png"}
               alt=''
               className='likeIcon'
               onClick={() => handleLike()}
